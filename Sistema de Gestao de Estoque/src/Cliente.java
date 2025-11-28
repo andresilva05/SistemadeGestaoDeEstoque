@@ -1,6 +1,7 @@
 public class Cliente {
     private String nome;
     private String documento;
+    private int idade;
 
     public Cliente(String nome, String documento){
         this.nome = nome;
