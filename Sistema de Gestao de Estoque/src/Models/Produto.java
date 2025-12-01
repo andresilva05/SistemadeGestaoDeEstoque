@@ -1,5 +1,6 @@
+package Models;
+
 import java.math.BigDecimal;
-import java.util.Scanner;
 
 public class Produto {
     private int id;
@@ -9,13 +10,14 @@ public class Produto {
     private boolean ativo;
 
 
-    public Produto(int id, String nome, BigDecimal preco, int qtdEstoque, boolean ativo) {
+    public Produto(int id, String nome, BigDecimal preco, int qtdEstoque) {
         this.id = id;
         this.nome = nome;
         this.preco = preco;
         this.qtdEstoque = qtdEstoque;
-        this.ativo = ativo;
+        this.ativo = true; // Sempre ativo ao criar
     }
+
 
     public Produto() {
     }
