@@ -9,6 +9,7 @@ import Services.ProdutoService;
 
 import javax.swing.JOptionPane;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -229,6 +230,7 @@ public class Main {
                 "Cadastrar Produto",
                 "Listar Produtos",
                 "Buscar Produto por ID",
+                "Buscar Produto por Nome",
                 "Atualizar Estoque",
                 "Excluir Produto",
                 "Voltar ao Menu Principal"
@@ -251,8 +253,10 @@ public class Main {
         } else if (opcoes[2].equals(resposta)) {
             buscarProdutoPorId();
         } else if (opcoes[3].equals(resposta)) {
-            atualizarEstoque();
+            buscarProdutoPorNome();
         } else if (opcoes[4].equals(resposta)) {
+            atualizarEstoque();
+        } else if (opcoes[5].equals(resposta)) {
             excluirProduto();
         }
     }
@@ -335,7 +339,7 @@ public class Main {
 
         // Criar e cadastrar produto usando o construtor correto
         Produto produto = new Produto(0, nome, preco, quantidade);
-        boolean sucesso = produtoService.incluirProduto(0, nome, preco, quantidade);
+        boolean sucesso = produtoService.incluirProduto(nome, preco, quantidade);
 
         if (sucesso) {
             mostrarMensagem("Produto cadastrado com sucesso!");
@@ -364,6 +368,44 @@ public class Main {
         }
 
         mostrarMensagem(lista);
+    }
+
+    private static void buscarProdutoPorNome() {
+        // 1. Solicitar parte do nome
+        String textoProduto = JOptionPane.showInputDialog(
+                null,
+                "Digite parte do nome do produto:",
+                "Buscar Produto",
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        // Verificar se usuário cancelou
+        if (textoProduto == null) {
+            return;
+        }
+
+        // 2. Buscar produtos
+        List<Produto> resultados = produtoService.buscarProdutosPorNome(textoProduto);
+
+        // 3. Verificar resultados
+        if (resultados.isEmpty()) {
+            // Lista VAZIA = nenhum produto encontrado
+            mostrarMensagem("Nenhum produto encontrado com: '" + textoProduto + "'");
+            return;
+        }
+
+        // 4. Mostrar resultados
+        StringBuilder lista = new StringBuilder();
+        lista.append("Produtos encontrados com '").append(textoProduto).append("':\n\n");
+
+        for (Produto produto : resultados) {
+            lista.append("ID: ").append(produto.getId()).append(" | ");
+            lista.append("Nome: ").append(produto.getNome()).append(" | ");
+            lista.append("Estoque: ").append(produto.getQtdEstoque()).append(" | ");
+            lista.append("Preço: R$ ").append(produto.getPreco()).append("\n");
+        }
+
+        mostrarMensagem(lista.toString());
     }
 
     // Buscar produto por ID

@@ -5,7 +5,6 @@ import Repositories.IProdutoRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
-
 public class ProdutoService {
     private IProdutoRepository repository;
 
@@ -13,7 +12,7 @@ public class ProdutoService {
         this.repository = repository;
     }
 
-    public boolean incluirProduto(int id, String nome, BigDecimal preco, int estoqueInicial) {
+    public boolean incluirProduto(String nome, BigDecimal preco, int estoqueInicial) {
         // Validar nome
         if (nome == null || nome.isBlank()) {
             return false;
@@ -29,9 +28,22 @@ public class ProdutoService {
             return false;
         }
 
+        // ✅ VERIFICAÇÃO DE NOME DUPLICADO (AJUSTADA)
+        // Agora buscarPorNome() retorna List, não Produto
+        List<Produto> produtosComMesmoNome = repository.buscarPorNome(nome);
+        if (!produtosComMesmoNome.isEmpty()) {
+            // Já existe produto com este nome
+            return false;
+        }
+
         // Criar produto
-        Produto novo = new Produto(id, nome, preco, estoqueInicial);
+        Produto novo = new Produto(0, nome, preco, estoqueInicial);
         return repository.adicionar(novo);
+    }
+
+    //  MÉTODO PARA BUSCA POR NOME
+    public List<Produto> buscarProdutosPorNome(String parteNome) {
+        return repository.buscarPorNome(parteNome);
     }
 
     public boolean excluirProduto(int id) {

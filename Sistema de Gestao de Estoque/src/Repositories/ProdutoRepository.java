@@ -15,13 +15,12 @@ public class ProdutoRepository implements IProdutoRepository {
 
     @Override
     public boolean adicionar(Produto produto) {
-
-
         produto.setId(proximoId);
         proximoId++;
 
-        // Verificar nome duplicado
-        if (buscarPorNome(produto.getNome()) != null) {
+        // ✅ CORRIGIDO:
+        List<Produto> produtosComMesmoNome = buscarPorNome(produto.getNome());
+        if (!produtosComMesmoNome.isEmpty()) {
             ultimaMensagem = "❌ Já existe produto com nome '" + produto.getNome() + "'";
             return false;
         }
@@ -30,7 +29,6 @@ public class ProdutoRepository implements IProdutoRepository {
         ultimaMensagem = "✅ Produto adicionado com sucesso!";
         return true;
     }
-
     @Override
     public Produto buscarPorId(int id) {
         return produtos.stream()
@@ -40,11 +38,13 @@ public class ProdutoRepository implements IProdutoRepository {
     }
 
     @Override
-    public Produto buscarPorNome(String nome) {
+    public List<Produto> buscarPorNome(String parteNome) {
+        String parteLower = parteNome.toLowerCase();
+
         return produtos.stream()
-                .filter(p -> p.getNome().equalsIgnoreCase(nome) && p.isAtivo())
-                .findFirst()
-                .orElse(null);
+                .filter(p -> p.isAtivo() &&
+                        p.getNome().toLowerCase().contains(parteLower))
+                .collect(Collectors.toList());
     }
 
     @Override

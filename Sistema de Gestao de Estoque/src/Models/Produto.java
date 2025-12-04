@@ -9,15 +9,13 @@ public class Produto {
     private int qtdEstoque;
     private boolean ativo;
 
-
     public Produto(int id, String nome, BigDecimal preco, int qtdEstoque) {
         this.id = id;
         this.nome = nome;
         this.preco = preco;
         this.qtdEstoque = qtdEstoque;
-        this.ativo = true; // Sempre ativo ao criar
+        this.ativo = true;
     }
-
 
     public Produto() {
     }

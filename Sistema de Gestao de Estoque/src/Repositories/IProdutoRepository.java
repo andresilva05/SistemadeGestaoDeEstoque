@@ -10,7 +10,7 @@ public interface IProdutoRepository {
 
     Produto buscarPorId(int id);
 
-    Produto buscarPorNome(String nome);
+    List<Produto> buscarPorNome(String parteNome);
 
     List<Produto> getAll();
 
