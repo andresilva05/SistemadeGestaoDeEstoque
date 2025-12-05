@@ -5,6 +5,7 @@ import Repositories.IProdutoRepository;
 
 import java.math.BigDecimal;
 import java.util.List;
+
 public class ProdutoService {
     private IProdutoRepository repository;
 
@@ -28,7 +29,7 @@ public class ProdutoService {
             return false;
         }
 
-        // ✅ VERIFICAÇÃO DE NOME DUPLICADO (AJUSTADA)
+        //  VERIFICAÇÃO DE NOME DUPLICADO
         // Agora buscarPorNome() retorna List, não Produto
         List<Produto> produtosComMesmoNome = repository.buscarPorNome(nome);
         if (!produtosComMesmoNome.isEmpty()) {
@@ -74,6 +75,24 @@ public class ProdutoService {
         }
 
         return repository.atualizarEstoque(id, novaQuantidade);
+    }
+
+    public BigDecimal calcularValorTotalEstoque() {
+        // Pegar todos produtos ativos
+        List<Produto> produtosAtivos = repository.getAll();
+
+        //  Iniciar total com zero
+        BigDecimal total = BigDecimal.ZERO;
+
+        //  Somar valor de cada produto: preço × quantidade
+        for (Produto produto : produtosAtivos) {
+            BigDecimal valorProduto = produto.getPreco()
+                    .multiply(BigDecimal.valueOf(produto.getQtdEstoque()));
+            total = total.add(valorProduto);
+        }
+
+        // Retornar total
+        return total;
     }
 
     // Método para obter mensagem do repositório (se tiver)
