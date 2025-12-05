@@ -66,6 +66,7 @@ public class ProdutoRepository implements IProdutoRepository {
         return false;
     }
 
+    // NO ProdutoRepository, certifique-se que este método existe:
     @Override
     public boolean atualizarEstoque(int id, int novaQuantidade) {
         Produto produto = buscarPorId(id);

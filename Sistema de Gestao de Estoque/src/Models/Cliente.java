@@ -28,4 +28,28 @@ public abstract class Cliente {
 
     // Método abstrato para validação
     public abstract boolean validarDocumento();
+
+    @Override
+    public String toString() {
+        String tipo = this instanceof ClientePF ? "PF" : "PJ";
+        String documentoFormatado = this instanceof ClientePF
+                ? formatarCPF(getDocumento())
+                : formatarCNPJ(getDocumento());
+
+        return String.format(
+                "ID: %d | Tipo: %s | Nome: %s | Documento: %s | Status: %s",
+                id, tipo, nome, documentoFormatado, ativo ? "ATIVO" : "INATIVO"
+        );
+    }
+
+    // Métodos auxiliares para formatação
+    private String formatarCPF(String cpf) {
+        if (cpf == null || cpf.length() != 11) return cpf;
+        return cpf.replaceAll("(\\d{3})(\\d{3})(\\d{3})(\\d{2})", "$1.$2.$3-$4");
+    }
+
+    private String formatarCNPJ(String cnpj) {
+        if (cnpj == null || cnpj.length() != 14) return cnpj;
+        return cnpj.replaceAll("(\\d{2})(\\d{3})(\\d{3})(\\d{4})(\\d{2})", "$1.$2.$3/$4-$5");
+    }
 }

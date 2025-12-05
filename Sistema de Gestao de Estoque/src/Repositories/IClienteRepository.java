@@ -1,10 +1,8 @@
 package Repositories;
 
-import Models.ClientePF;
-
 import java.util.List;
 
-public interface IClientePFRepository<T extends ClientePF> {
+public interface IClienteRepository<T> {
     boolean adicionar(T cliente);
 
     T buscarPorId(int id);
