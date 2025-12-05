@@ -1,15 +1,15 @@
 package Services;
 
 import Models.ClientePF;
-import Repositories.IClientePFRepository;
+import Repositories.IClienteRepository;
 
 import java.util.List;
 
 public class ClientePFService<T extends ClientePF> {
-    private IClientePFRepository<T> repository;
+    private IClienteRepository<T> repository;
     private String ultimaMensagem;
 
-    public ClientePFService(IClientePFRepository<T> repository) {
+    public ClientePFService(IClienteRepository<T> repository) {
         this.repository = repository;
     }
 

@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors; // Adicione este import
 
-public class ClientePFRepository<T extends ClientePF> implements IClientePFRepository<T> {
+public class ClientePFRepository<T extends ClientePF> implements IClienteRepository<T> {
     private List<T> clientes = new ArrayList<>();
     private String ultimaMensagem;
     private int proximoId = 1;
