@@ -1,28 +1,27 @@
 package Repositories;
 
-import Models.ClientePF;
-
+import Models.Cliente;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors; // Adicione este import
+import java.util.stream.Collectors;
 
-public class ClientePFRepository<T extends ClientePF> implements IClientePFRepository<T> {
+public class ClienteRepository<T extends Cliente> implements IClienteRepository<T> {
+
     private List<T> clientes = new ArrayList<>();
     private String ultimaMensagem;
     private int proximoId = 1;
 
     @Override
     public boolean adicionar(T cliente) {
-
         cliente.setId(proximoId);
         proximoId++;
-        // Verifica documento duplicado
+
+        // Verificar duplicidade
         if (buscarPorDocumento(cliente.getDocumento()) != null) {
-            ultimaMensagem = "❌ Já existe cliente com documento " + cliente.getDocumento();
+            ultimaMensagem = "❌ Já existe cliente com documento: " + cliente.getDocumento();
             return false;
         }
 
-        // Valida documento específico
         if (!cliente.validarDocumento()) {
             ultimaMensagem = "❌ Documento inválido: " + cliente.getDocumento();
             return false;
@@ -52,7 +51,7 @@ public class ClientePFRepository<T extends ClientePF> implements IClientePFRepos
     @Override
     public List<T> getAll() {
         return clientes.stream()
-                .filter(ClientePF::isAtivo)
+                .filter(Cliente::isAtivo)
                 .collect(Collectors.toList());
     }
 
@@ -68,7 +67,7 @@ public class ClientePFRepository<T extends ClientePF> implements IClientePFRepos
         return false;
     }
 
-    // Método para obter a última mensagem
+    @Override
     public String getUltimaMensagem() {
         return ultimaMensagem;
     }
