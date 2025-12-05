@@ -9,593 +9,309 @@ import Services.ProdutoService;
 
 import javax.swing.JOptionPane;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
     private static ClientePFService<ClientePF> clientePFService;
     private static ProdutoService produtoService;
-    private static final String TITLE = "Sistema de Gestão de Estoque";
+    private static final String TITULO = "Sistema de Gestão de Estoque";
 
     public static void main(String[] args) {
-        // Inicialização dos repositórios e services
-        IClientePFRepository<ClientePF> repoCliente = new ClientePFRepository<>();
-        IProdutoRepository repoProduto = new ProdutoRepository();
-
-        clientePFService = new ClientePFService<>(repoCliente);
-        produtoService = new ProdutoService(repoProduto);
-
-        int opcaoMenu;
-
-        // Loop principal do sistema
-        do {
-            opcaoMenu = mostrarMenuPrincipal();
-
-            if (opcaoMenu == 1) {
-                menuClientes();
-            } else if (opcaoMenu == 2) {
-                menuProdutos();
-            } else if (opcaoMenu == 0) {
-                mostrarMensagem("Obrigado por utilizar o Sistema de Gestão de Estoque!");
-            }
-        } while (opcaoMenu != 0);
+        inicializarSistema();
+        executarMenuPrincipal();
     }
 
-    // Menu Principal
-    private static int mostrarMenuPrincipal() {
-        Object[] opcoes = {
-                "Gestão de Clientes",
-                "Gestão de Produtos",
-                "Sair do Sistema"
-        };
+    private static void inicializarSistema() {
+        clientePFService = new ClientePFService<>(new ClientePFRepository<>());
+        produtoService = new ProdutoService(new ProdutoRepository());
+    }
 
-        String resposta = (String) JOptionPane.showInputDialog(
-                null,
-                "MENU PRINCIPAL\nSelecione uma opção:",
-                TITLE,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                opcoes,
-                opcoes[0]
-        );
+    // ============== MENU PRINCIPAL ==============
+    private static void executarMenuPrincipal() {
+        while (true) {
+            String[] opcoes = {"Gestão de Clientes", "Gestão de Produtos", "Sair"};
+            String escolha = exibirMenu("MENU PRINCIPAL", opcoes);
 
-        if (opcoes[0].equals(resposta)) {
-            return 1;
-        } else if (opcoes[1].equals(resposta)) {
-            return 2;
-        } else {
-            return 0;
+            if (escolha == null || escolha.equals("Sair")) break;
+            if (escolha.equals("Gestão de Clientes")) menuClientes();
+            if (escolha.equals("Gestão de Produtos")) menuProdutos();
         }
+        mostrarMensagem("Obrigado por usar o sistema!");
     }
 
-    // ==================== MENU CLIENTES ====================
+    // ============== MENU CLIENTES ==============
     private static void menuClientes() {
-        Object[] opcoes = {
-                "Cadastrar Cliente PF",
-                "Listar Clientes",
-                "Buscar Cliente por ID",
-                "Excluir Cliente",
-                "Voltar ao Menu Principal"
-        };
+        while (true) {
+            String[] opcoes = {"Cadastrar", "Listar", "Buscar", "Excluir", "Voltar"};
+            String escolha = exibirMenu("MENU CLIENTES", opcoes);
 
-        String resposta = (String) JOptionPane.showInputDialog(
-                null,
-                "MENU CLIENTES\nSelecione uma opção:",
-                TITLE,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                opcoes,
-                opcoes[0]
-        );
+            if (escolha == null || escolha.equals("Voltar")) break;
 
-        if (opcoes[0].equals(resposta)) {
-            cadastrarClientePF();
-        } else if (opcoes[1].equals(resposta)) {
-            listarClientes();
-        } else if (opcoes[2].equals(resposta)) {
-            buscarClientePorId();
-        } else if (opcoes[3].equals(resposta)) {
-            excluirCliente();
+            switch (escolha) {
+                case "Cadastrar" -> cadastrarCliente();
+                case "Listar" -> listarClientes();
+                case "Buscar" -> buscarCliente();
+                case "Excluir" -> excluirCliente();
+            }
         }
     }
 
-    // Cadastrar Cliente Pessoa Física
-    public static void cadastrarClientePF() {
-        // Solicitar Nome
-        String nome = JOptionPane.showInputDialog(
-                null,
-                "Nome do Cliente:",
-                "Cadastro de Cliente PF",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (nome == null || nome.trim().isEmpty()) {
-            mostrarErro("Erro: Nome é obrigatório!");
-            return;
-        }
+    private static void cadastrarCliente() {
+        String nome;
+        do {
+            nome = JOptionPane.showInputDialog(null, "Nome do Cliente:", "Cadastro", JOptionPane.QUESTION_MESSAGE);
+            if (nome == null) return;
+            if (nome.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Nome obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        } while (nome.trim().isEmpty());
 
-        // Solicitar CPF
-        String cpf = JOptionPane.showInputDialog(
-                null,
-                "CPF do Cliente:",
-                "Cadastro de Cliente PF",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (cpf == null || cpf.trim().isEmpty()) {
-            mostrarErro("Erro: CPF é obrigatório!");
-            return;
-        }
+        String cpf;
+        do {
+            cpf = JOptionPane.showInputDialog(null, "CPF do Cliente:", "Cadastro", JOptionPane.QUESTION_MESSAGE);
+            if (cpf == null) return;
+            if (cpf.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "CPF obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        } while (cpf.trim().isEmpty());
 
-        // Criar e cadastrar cliente
-        ClientePF cliente = new ClientePF(0, nome, cpf);
+        // Criar e cadastrar cliente (se passar todas as validações)
+        ClientePF cliente = new ClientePF(0, nome.trim(), cpf.trim());
         clientePFService.cadastrarCliente(cliente);
-        mostrarMensagem(clientePFService.getUltimaMensagem());
+
+        // Mostrar mensagem do service
+        String mensagem = clientePFService.getUltimaMensagem();
+        if (mensagem != null) {
+            mostrarMensagem(mensagem);
+        }
     }
 
-    // Listar todos os clientes
     private static void listarClientes() {
         List<ClientePF> clientes = clientePFService.listarTodos();
-
         if (clientes.isEmpty()) {
-            mostrarMensagem("Nenhum cliente cadastrado no sistema.");
+            mostrarMensagem("Nenhum cliente cadastrado.");
             return;
         }
 
-        String lista = "Lista de Clientes:\n\n";
-        for (ClientePF cliente : clientes) {
-            lista = lista + "ID: " + cliente.getId() + " | ";
-            lista = lista + "Nome: " + cliente.getNome() + " | ";
-            lista = lista + "CPF: " + cliente.getCpf() + " | ";
-            lista = lista + "Status: " + (cliente.isAtivo() ? "Ativo" : "Inativo");
-            lista = lista + "\n";
-        }
-
-        mostrarMensagem(lista);
-    }
-
-    // Buscar cliente por ID
-    private static void buscarClientePorId() {
-        String idTexto = JOptionPane.showInputDialog(
-                null,
-                "Digite o ID do cliente:",
-                "Buscar Cliente",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (idTexto == null) {
-            return;
-        }
-
-        // Verificar se ID contém apenas números
-        boolean idValido = true;
-        for (int i = 0; i < idTexto.length(); i++) {
-            if (!Character.isDigit(idTexto.charAt(i))) {
-                idValido = false;
-                break;
-            }
-        }
-
-        if (!idValido) {
-            mostrarErro("Erro: ID deve ser um número válido!");
-            return;
-        }
-
-        int id = Integer.parseInt(idTexto);
-        ClientePF cliente = clientePFService.buscarPorId(id);
-
-        if (cliente != null) {
-            String informacoes = "Cliente encontrado:\n\n";
-            informacoes = informacoes + "ID: " + cliente.getId() + "\n";
-            informacoes = informacoes + "Nome: " + cliente.getNome() + "\n";
-            informacoes = informacoes + "CPF: " + cliente.getCpf() + "\n";
-            informacoes = informacoes + "Status: " + (cliente.isAtivo() ? "Ativo" : "Inativo");
-            mostrarMensagem(informacoes);
-        } else {
-            mostrarErro("Cliente não encontrado com ID: " + id);
-        }
-    }
-
-    // Excluir cliente
-    private static void excluirCliente() {
-        String idTexto = JOptionPane.showInputDialog(
-                null,
-                "Digite o ID do cliente para excluir:",
-                "Excluir Cliente",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (idTexto == null) {
-            return;
-        }
-
-        // Verificar se ID contém apenas números
-        boolean idValido = true;
-        for (int i = 0; i < idTexto.length(); i++) {
-            if (!Character.isDigit(idTexto.charAt(i))) {
-                idValido = false;
-                break;
-            }
-        }
-
-        if (!idValido) {
-            mostrarErro("Erro: ID deve ser um número válido!");
-            return;
-        }
-
-        int id = Integer.parseInt(idTexto);
-        clientePFService.excluirCliente(id);
-        mostrarMensagem(clientePFService.getUltimaMensagem());
-    }
-
-    // ==================== MENU PRODUTOS ====================
-    private static void menuProdutos() {
-        Object[] opcoes = {
-                "Cadastrar Produto",
-                "Listar Produtos",
-                "Buscar Produto por ID",
-                "Buscar Produto por Nome",
-                "Atualizar Estoque",
-                "Excluir Produto",
-                "Voltar ao Menu Principal"
-        };
-
-        String resposta = (String) JOptionPane.showInputDialog(
-                null,
-                "MENU PRODUTOS\nSelecione uma opção:",
-                TITLE,
-                JOptionPane.QUESTION_MESSAGE,
-                null,
-                opcoes,
-                opcoes[0]
-        );
-
-        if (opcoes[0].equals(resposta)) {
-            cadastrarProduto();
-        } else if (opcoes[1].equals(resposta)) {
-            listarProdutos();
-        } else if (opcoes[2].equals(resposta)) {
-            buscarProdutoPorId();
-        } else if (opcoes[3].equals(resposta)) {
-            buscarProdutoPorNome();
-        } else if (opcoes[4].equals(resposta)) {
-            atualizarEstoque();
-        } else if (opcoes[5].equals(resposta)) {
-            excluirProduto();
-        }
-    }
-
-    // Cadastrar Produto
-    public static void cadastrarProduto() {
-
-        // Solicitar Nome
-        String nome = JOptionPane.showInputDialog(
-                null,
-                "Nome do Produto:",
-                "Cadastro de Produto",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (nome == null || nome.trim().isEmpty()) {
-            mostrarErro("Erro: Nome é obrigatório!");
-            return;
-        }
-
-        // Solicitar Preço
-        String precoTexto = JOptionPane.showInputDialog(
-                null,
-                "Preço do Produto (ex: 10.50):",
-                "Cadastro de Produto",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (precoTexto == null) {
-            return;
-        }
-
-        // Converter para BigDecimal
-        BigDecimal preco;
-        try {
-            // Trocar vírgula por ponto para padronizar
-            precoTexto = precoTexto.replace(",", ".");
-            preco = new BigDecimal(precoTexto);
-        } catch (Exception e) {
-            mostrarErro("Erro: Preço deve ser um número válido!");
-            return;
-        }
-
-        // Verificar se preço é positivo
-        if (preco.compareTo(BigDecimal.ZERO) <= 0) {
-            mostrarErro("Erro: Preço deve ser maior que zero!");
-            return;
-        }
-
-        // Solicitar Quantidade
-        String quantidadeTexto = JOptionPane.showInputDialog(
-                null,
-                "Quantidade em Estoque:",
-                "Cadastro de Produto",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (quantidadeTexto == null) {
-            return;
-        }
-
-        // Verificar se quantidade contém apenas números
-        boolean quantidadeValida = true;
-        for (int i = 0; i < quantidadeTexto.length(); i++) {
-            if (!Character.isDigit(quantidadeTexto.charAt(i))) {
-                quantidadeValida = false;
-                break;
-            }
-        }
-
-        if (!quantidadeValida) {
-            mostrarErro("Erro: Quantidade deve ser um número inteiro!");
-            return;
-        }
-
-        int quantidade = Integer.parseInt(quantidadeTexto);
-
-        // Verificar se quantidade é positiva
-        if (quantidade < 0) {
-            mostrarErro("Erro: Quantidade não pode ser negativa!");
-            return;
-        }
-
-        // Criar e cadastrar produto usando o construtor correto
-        Produto produto = new Produto(0, nome, preco, quantidade);
-        boolean sucesso = produtoService.incluirProduto(nome, preco, quantidade);
-
-        if (sucesso) {
-            mostrarMensagem("Produto cadastrado com sucesso!");
-        } else {
-            mostrarMensagem(produtoService.getUltimaMensagem());
-        }
-    }
-
-    // Listar todos os produtos
-    private static void listarProdutos() {
-        List<Produto> produtos = produtoService.listarProdutos();
-
-        if (produtos.isEmpty()) {
-            mostrarMensagem("Nenhum produto cadastrado no sistema.");
-            return;
-        }
-
-        String lista = "Lista de Produtos:\n\n";
-        for (Produto produto : produtos) {
-            lista = lista + "ID: " + produto.getId() + " | ";
-            lista = lista + "Nome: " + produto.getNome() + " | ";
-            lista = lista + "Preço: R$ " + produto.getPreco() + " | ";
-            lista = lista + "Estoque: " + produto.getQtdEstoque() + " | ";
-            lista = lista + "Status: " + (produto.isAtivo() ? "Ativo" : "Inativo");
-            lista = lista + "\n";
-        }
-
-        mostrarMensagem(lista);
-    }
-
-    private static void buscarProdutoPorNome() {
-        // 1. Solicitar parte do nome
-        String textoProduto = JOptionPane.showInputDialog(
-                null,
-                "Digite parte do nome do produto:",
-                "Buscar Produto",
-                JOptionPane.QUESTION_MESSAGE
-        );
-
-        // Verificar se usuário cancelou
-        if (textoProduto == null) {
-            return;
-        }
-
-        // 2. Buscar produtos
-        List<Produto> resultados = produtoService.buscarProdutosPorNome(textoProduto);
-
-        // 3. Verificar resultados
-        if (resultados.isEmpty()) {
-            // Lista VAZIA = nenhum produto encontrado
-            mostrarMensagem("Nenhum produto encontrado com: '" + textoProduto + "'");
-            return;
-        }
-
-        // 4. Mostrar resultados
-        StringBuilder lista = new StringBuilder();
-        lista.append("Produtos encontrados com '").append(textoProduto).append("':\n\n");
-
-        for (Produto produto : resultados) {
-            lista.append("ID: ").append(produto.getId()).append(" | ");
-            lista.append("Nome: ").append(produto.getNome()).append(" | ");
-            lista.append("Estoque: ").append(produto.getQtdEstoque()).append(" | ");
-            lista.append("Preço: R$ ").append(produto.getPreco()).append("\n");
-        }
-
+        StringBuilder lista = new StringBuilder("Clientes:\n\n");
+        clientes.forEach(c -> lista.append(String.format("ID: %d | Nome: %s | CPF: %s\n",
+                c.getId(), c.getNome(), c.getCpf())));
         mostrarMensagem(lista.toString());
     }
 
-    // Buscar produto por ID
-    private static void buscarProdutoPorId() {
-        String idTexto = JOptionPane.showInputDialog(
-                null,
-                "Digite o ID do produto:",
-                "Buscar Produto",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (idTexto == null) {
+    private static void buscarCliente() {
+        Integer id = solicitarNumero("ID do Cliente:", "Buscar");
+        if (id == null) return;
+
+        ClientePF cliente = clientePFService.buscarPorId(id);
+        if (cliente == null) {
+            mostrarErro("Cliente não encontrado!");
             return;
         }
 
-        // Verificar se ID contém apenas números
-        boolean idValido = true;
-        for (int i = 0; i < idTexto.length(); i++) {
-            if (!Character.isDigit(idTexto.charAt(i))) {
-                idValido = false;
-                break;
+        mostrarMensagem(String.format("Cliente encontrado:\nID: %d\nNome: %s\nCPF: %s",
+                cliente.getId(), cliente.getNome(), cliente.getCpf()));
+    }
+
+    private static void excluirCliente() {
+        Integer id = solicitarNumero("Informe o id do cliente a ser excluido:", "Excluir");
+        if (id == null) return;
+
+        clientePFService.excluirCliente(id);
+        exibirMensagemService(clientePFService.getUltimaMensagem());
+    }
+
+    // ============== MENU PRODUTOS ==============
+    private static void menuProdutos() {
+        while (true) {
+            String[] opcoes = {"Cadastrar", "Listar", "Buscar ID", "Buscar Nome", "Valor Total do Estoque", "Atualizar", "Excluir", "Voltar"};
+            String escolha = exibirMenu("MENU PRODUTOS", opcoes);
+
+            if (escolha == null || escolha.equals("Voltar")) break;
+
+            switch (escolha) {
+                case "Cadastrar" -> cadastrarProduto();
+                case "Listar" -> listarProdutos();
+                case "Buscar ID" -> buscarProdutoId();
+                case "Buscar Nome" -> buscarProdutoNome();
+                case "Valor Total" -> valorTotal();
+                case "Atualizar" -> atualizarEstoque();
+                case "Excluir" -> excluirProduto();
             }
-        }
-
-        if (!idValido) {
-            mostrarErro("Erro: ID deve ser um número válido!");
-            return;
-        }
-
-        int id = Integer.parseInt(idTexto);
-        Produto produto = produtoService.buscarProdutoPorId(id);
-
-        if (produto != null) {
-            String informacoes = "Produto encontrado:\n\n";
-            informacoes = informacoes + "ID: " + produto.getId() + "\n";
-            informacoes = informacoes + "Nome: " + produto.getNome() + "\n";
-            informacoes = informacoes + "Preço: R$ " + produto.getPreco() + "\n";
-            informacoes = informacoes + "Estoque: " + produto.getQtdEstoque() + "\n";
-            informacoes = informacoes + "Status: " + (produto.isAtivo() ? "Ativo" : "Inativo");
-            mostrarMensagem(informacoes);
-        } else {
-            mostrarErro("Produto não encontrado com ID: " + id);
         }
     }
 
-    // Atualizar estoque
-    private static void atualizarEstoque() {
-        // Solicitar ID do produto
-        String idTexto = JOptionPane.showInputDialog(
-                null,
-                "Digite o ID do produto:",
-                "Atualizar Estoque",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (idTexto == null) {
-            return;
-        }
-
-        // Verificar se ID contém apenas números
-        boolean idValido = true;
-        for (int i = 0; i < idTexto.length(); i++) {
-            if (!Character.isDigit(idTexto.charAt(i))) {
-                idValido = false;
-                break;
+    private static void cadastrarProduto() {
+        // NOME - Pedir até ser válido
+        String nome;
+        do {
+            nome = JOptionPane.showInputDialog(null, "Nome do Produto:", "Cadastro", JOptionPane.QUESTION_MESSAGE);
+            if (nome == null) return; // Usuário cancelou
+            if (nome.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Nome obrigatório!", "Erro", JOptionPane.ERROR_MESSAGE);
             }
-        }
+        } while (nome.trim().isEmpty());
 
-        if (!idValido) {
-            mostrarErro("Erro: ID deve ser um número válido!");
+        // PREÇO - Pedir até ser válido
+        BigDecimal preco;
+        do {
+            String texto = JOptionPane.showInputDialog(null, "Preço (ex: 10.50):", "Cadastro", JOptionPane.QUESTION_MESSAGE);
+            if (texto == null) return; // Usuário cancelou
+
+            try {
+                texto = texto.replace(",", ".").trim();
+                preco = new BigDecimal(texto);
+
+                if (preco.compareTo(BigDecimal.ZERO) <= 0) {
+                    JOptionPane.showMessageDialog(null, "Preço deve ser maior que zero!", "Erro", JOptionPane.ERROR_MESSAGE);
+                    continue; // Volta para pedir novamente
+                }
+                break; // Preço válido, sai do loop
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Preço inválido! Use formato: 10.50", "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        } while (true);
+
+        // QUANTIDADE - Pedir até ser válido
+        int quantidade;
+        do {
+            String texto = JOptionPane.showInputDialog(null, "Quantidade em estoque:", "Cadastro", JOptionPane.QUESTION_MESSAGE);
+            if (texto == null) return; // Usuário cancelou
+
+            try {
+                quantidade = Integer.parseInt(texto.trim());
+
+                if (quantidade < 0) {
+                    JOptionPane.showMessageDialog(null, "Quantidade não pode ser negativa!", "Erro", JOptionPane.ERROR_MESSAGE);
+                    continue; // Volta para pedir novamente
+                }
+                break; // Quantidade válida, sai do loop
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Quantidade inválida! Digite um número.", "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        } while (true);
+
+        // Cadastrar produto
+        boolean sucesso = produtoService.incluirProduto(nome.trim(), preco, quantidade);
+
+        if (sucesso) {
+            JOptionPane.showMessageDialog(null, "✅ Produto cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            String mensagem = produtoService.getUltimaMensagem();
+            JOptionPane.showMessageDialog(null, mensagem != null ? mensagem : "❌ Erro ao cadastrar!", "Erro", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private static void listarProdutos() {
+        List<Produto> produtos = produtoService.listarProdutos();
+        if (produtos.isEmpty()) {
+            mostrarMensagem("Nenhum produto.");
             return;
         }
 
-        int id = Integer.parseInt(idTexto);
+        StringBuilder lista = new StringBuilder("Produtos:\n\n");
+        produtos.forEach(p -> lista.append(String.format("ID: %d | Nome: %s | Preço: R$ %s | Estoque: %d\n",
+                p.getId(), p.getNome(), p.getPreco(), p.getQtdEstoque())));
+        mostrarMensagem(lista.toString());
+    }
 
-        // Verificar se produto existe
+    private static void buscarProdutoId() {
+        Integer id = solicitarNumero("ID do Produto:", "Buscar");
+        if (id == null) return;
+
         Produto produto = produtoService.buscarProdutoPorId(id);
         if (produto == null) {
-            mostrarErro("Produto não encontrado com ID: " + id);
+            mostrarErro("Produto não encontrado!");
             return;
         }
 
-        // Verificar se produto está ativo
-        if (!produto.isAtivo()) {
-            mostrarErro("Erro: Não é possível atualizar estoque de produto inativo!");
-            return;
-        }
-
-        // Mostrar dados atuais
-        mostrarMensagem("Produto: " + produto.getNome() +
-                "\nEstoque atual: " + produto.getQtdEstoque());
-
-        // Solicitar nova quantidade
-        String quantidadeTexto = JOptionPane.showInputDialog(
-                null,
-                "Nova quantidade em estoque:",
-                "Atualizar Estoque",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (quantidadeTexto == null) {
-            return;
-        }
-
-        // Verificar se quantidade contém apenas números
-        boolean quantidadeValida = true;
-        for (int i = 0; i < quantidadeTexto.length(); i++) {
-            char caracter = quantidadeTexto.charAt(i);
-            if (!Character.isDigit(caracter)) {
-                // Permitir sinal de negativo no início
-                if (i == 0 && caracter == '-') {
-                    continue;
-                }
-                quantidadeValida = false;
-                break;
-            }
-        }
-
-        if (!quantidadeValida) {
-            mostrarErro("Erro: Quantidade deve ser um número inteiro!");
-            return;
-        }
-
-        int novaQuantidade = Integer.parseInt(quantidadeTexto);
-
-        // VALIDAÇÃO IMPORTANTE: não permitir negativo
-        if (novaQuantidade < 0) {
-            mostrarErro("Erro: Estoque não pode ser negativo!");
-            return;
-        }
-
-        // Atualizar estoque
-        boolean sucesso = produtoService.atualizarEstoque(id, novaQuantidade);
-
-        if (sucesso) {
-            mostrarMensagem("Estoque atualizado com sucesso!\nNovo estoque: " + novaQuantidade);
-        } else {
-            mostrarErro("Erro: Não foi possível atualizar o estoque!");
-        }
+        mostrarMensagem(String.format("Produto:\nID: %d\nNome: %s\nPreço: R$ %s\nEstoque: %d",
+                produto.getId(), produto.getNome(), produto.getPreco(), produto.getQtdEstoque()));
     }
 
-    // Excluir produto
+    private static void buscarProdutoNome() {
+        String texto = JOptionPane.showInputDialog(null, "Buscar por nome:", "Buscar", JOptionPane.QUESTION_MESSAGE);
+        if (texto == null || texto.trim().isEmpty()) return;
+
+        List<Produto> resultados = produtoService.buscarProdutosPorNome(texto.trim());
+        if (resultados.isEmpty()) {
+            mostrarMensagem("Nenhum produto encontrado.");
+            return;
+        }
+
+        StringBuilder lista = new StringBuilder("Resultados:\n\n");
+        resultados.forEach(p -> lista.append(String.format("ID: %d | Nome: %s | Estoque: %d\n",
+                p.getId(), p.getNome(), p.getQtdEstoque())));
+        mostrarMensagem(lista.toString());
+    }
+
+    private static void valorTotal() {
+        BigDecimal total = produtoService.calcularValorTotalEstoque();
+        mostrarMensagem("Valor Total: " + String.format("R$ %,.2f", total));
+    }
+
+    private static void atualizarEstoque() {
+        Integer id = solicitarNumero("ID do Produto:", "Atualizar");
+        if (id == null) return;
+
+        Produto produto = produtoService.buscarProdutoPorId(id);
+        if (produto == null) {
+            mostrarErro("Produto não encontrado!");
+            return;
+        }
+
+        mostrarMensagem("Produto: " + produto.getNome() + "\nEstoque atual: " + produto.getQtdEstoque());
+
+        Integer novaQtd;
+        do {
+            novaQtd = solicitarNumero("Nova quantidade:", "Atualizar");
+            if (novaQtd == null) return;
+            if (novaQtd < 0) mostrarErro("Não pode ser negativo!");
+        } while (novaQtd < 0);
+
+        boolean sucesso = produtoService.atualizarEstoque(id, novaQtd);
+        exibirResultado(sucesso, "Estoque atualizado!", produtoService.getUltimaMensagem());
+    }
+
     private static void excluirProduto() {
-        String idTexto = JOptionPane.showInputDialog(
-                null,
-                "Digite o ID do produto para excluir:",
-                "Excluir Produto",
-                JOptionPane.QUESTION_MESSAGE
-        );
-        if (idTexto == null) {
-            return;
-        }
+        Integer id = solicitarNumero("Informe o ID do produto a ser excluido:", "Excluir");
+        if (id == null) return;
 
-        // Verificar se ID contém apenas números
-        boolean idValido = true;
-        for (int i = 0; i < idTexto.length(); i++) {
-            if (!Character.isDigit(idTexto.charAt(i))) {
-                idValido = false;
-                break;
-            }
-        }
-
-        if (!idValido) {
-            mostrarErro("Erro: ID deve ser um número válido!");
-            return;
-        }
-
-        int id = Integer.parseInt(idTexto);
         boolean sucesso = produtoService.excluirProduto(id);
+        exibirResultado(sucesso, "Produto excluído!", produtoService.getUltimaMensagem());
+    }
 
-        if (sucesso) {
-            mostrarMensagem("Produto excluído com sucesso!");
-        } else {
-            mostrarMensagem(produtoService.getUltimaMensagem());
+    // ============== MÉTODOS AUXILIARES ==============
+    private static String exibirMenu(String titulo, String[] opcoes) {
+        return (String) JOptionPane.showInputDialog(null, titulo, TITULO,
+                JOptionPane.QUESTION_MESSAGE, null, opcoes, opcoes[0]);
+    }
+
+    private static Integer solicitarNumero(String mensagem, String titulo) {
+        String texto = JOptionPane.showInputDialog(null, mensagem, titulo, JOptionPane.QUESTION_MESSAGE);
+        if (texto == null) return null;
+
+        try {
+            return Integer.parseInt(texto.trim());
+        } catch (Exception e) {
+            mostrarErro("Número inválido!");
+            return solicitarNumero(mensagem, titulo);
         }
     }
 
-    // Métodos auxiliares
+    private static void exibirMensagemService(String mensagem) {
+        if (mensagem != null) mostrarMensagem(mensagem);
+    }
+
+    private static void exibirResultado(boolean sucesso, String mensagemSucesso, String mensagemErro) {
+        mostrarMensagem(sucesso ? "✅ " + mensagemSucesso : "❌ " + (mensagemErro != null ? mensagemErro : "Operação falhou"));
+    }
+
     private static void mostrarMensagem(String mensagem) {
-        JOptionPane.showMessageDialog(
-                null,
-                mensagem,
-                TITLE,
-                JOptionPane.INFORMATION_MESSAGE
-        );
+        JOptionPane.showMessageDialog(null, mensagem, TITULO, JOptionPane.INFORMATION_MESSAGE);
     }
 
     private static void mostrarErro(String mensagem) {
-        JOptionPane.showMessageDialog(
-                null,
-                mensagem,
-                TITLE,
-                JOptionPane.ERROR_MESSAGE
-        );
+        JOptionPane.showMessageDialog(null, "❌ " + mensagem, TITULO, JOptionPane.ERROR_MESSAGE);
     }
 }
