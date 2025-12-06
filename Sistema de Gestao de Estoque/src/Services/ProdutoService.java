@@ -2,15 +2,19 @@ package Services;
 
 import Models.Produto;
 import Repositories.IProdutoRepository;
+import Repositories.IVendasRepository;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProdutoService {
     private IProdutoRepository repository;
+    private IVendasRepository vendasRepository;
 
-    public ProdutoService(IProdutoRepository repository) {
+    public ProdutoService(IProdutoRepository repository, IVendasRepository vendasRepository) {
         this.repository = repository;
+        this.vendasRepository = vendasRepository;
     }
 
     public boolean incluirProduto(String nome, BigDecimal preco, int estoqueInicial) {
@@ -48,6 +52,16 @@ public class ProdutoService {
     }
 
     public boolean excluirProduto(int id) {
+        Produto produto = repository.buscarPorId(id);
+
+        if (produto == null) {
+            return false; // Main vai tratar mensagem
+        }
+
+        if (vendasRepository.produtoTemVendas(id)) {
+            return false; // Main vai tratar mensagem
+        }
+
         return repository.excluir(id);
     }
 
@@ -57,6 +71,11 @@ public class ProdutoService {
 
     public List<Produto> listarProdutos() {
         return repository.getAll();
+    }
+
+    public List<Produto> estoqueBaixo(int valorLimite) {
+
+        return repository.estoqueBaixo(valorLimite);
     }
 
     public boolean atualizarEstoque(int id, int novaQuantidade) {

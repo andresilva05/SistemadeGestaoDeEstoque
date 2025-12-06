@@ -14,11 +14,12 @@ public interface IProdutoRepository {
 
     List<Produto> getAll();
 
+    List<Produto> estoqueBaixo(int valorLimite);
+
     boolean excluir(int id);
 
     String getUltimaMensagem(); // Para mensagens
 
-    // Adicione estes métodos se não existirem:
     boolean atualizarEstoque(int id, int novaQuantidade);
 
     boolean atualizarPreco(int id, BigDecimal novoPreco);

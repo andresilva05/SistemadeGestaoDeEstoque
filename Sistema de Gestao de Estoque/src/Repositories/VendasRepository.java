@@ -60,11 +60,28 @@ public class VendasRepository implements IVendasRepository {
 
         if (venda != null) {
             venda.setAtiva(false);
-            ultimaMensagem = "⚠️ Venda ID " + id + " cancelada.";
+            ultimaMensagem = "Venda ID " + id + " cancelada.";
             return true;
         }
 
-        ultimaMensagem = "❌ Venda não encontrada com ID: " + id;
+        ultimaMensagem = "Venda não encontrada com ID: " + id;
+        return false;
+    }
+
+    @Override
+    public boolean produtoTemVendas(int idProduto) {
+        List<Venda> todasVendas = getAll();
+
+        for (Venda venda : todasVendas) {
+            // IMPORTANTE: Verificar se produto não é null
+            if (venda.getProduto() != null && venda.getProduto().getId() == idProduto) {
+                System.out.println("ENCONTROU: Venda ID " + venda.getId() +
+                        " tem produto ID " + idProduto);
+                return true;
+            }
+        }
+
+        System.out.println("NÃO ENCONTROU vendas para produto ID " + idProduto);
         return false;
     }
 
@@ -76,6 +93,20 @@ public class VendasRepository implements IVendasRepository {
         return vendas.stream()
                 .filter(v -> v.isAtiva() && v.getCliente().getId() == idCliente)
                 .collect(Collectors.toList());
+    }
+
+
+    @Override
+    public boolean clienteTemVendas(int idCliente) {
+        List<Venda> todasVendas = getAll();
+
+        for (Venda venda : todasVendas) {
+            if (venda.getCliente() != null && venda.getCliente().getId() == idCliente) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // ================================

@@ -21,14 +21,15 @@ public class ProdutoRepository implements IProdutoRepository {
         // ✅ CORRIGIDO:
         List<Produto> produtosComMesmoNome = buscarPorNome(produto.getNome());
         if (!produtosComMesmoNome.isEmpty()) {
-            ultimaMensagem = "❌ Já existe produto com nome '" + produto.getNome() + "'";
+            ultimaMensagem = "Já existe produto com nome '" + produto.getNome() + "'";
             return false;
         }
 
         produtos.add(produto);
-        ultimaMensagem = "✅ Produto adicionado com sucesso!";
+        ultimaMensagem = "Produto adicionado com sucesso!";
         return true;
     }
+
     @Override
     public Produto buscarPorId(int id) {
         return produtos.stream()
@@ -56,13 +57,16 @@ public class ProdutoRepository implements IProdutoRepository {
 
     @Override
     public boolean excluir(int id) {
+
+            System.out.println("Repository.excluir() chamado para ID: " + id);
+            // ... resto do código
         Produto produto = buscarPorId(id);
         if (produto != null) {
             produto.setAtivo(false);
-            ultimaMensagem = "✅ Produto excluído com sucesso!";
+            ultimaMensagem = "Produto excluído com sucesso!";
             return true;
         }
-        ultimaMensagem = "❌ Produto não encontrado com ID: " + id;
+        ultimaMensagem = "Produto não encontrado com ID: " + id;
         return false;
     }
 
@@ -72,10 +76,10 @@ public class ProdutoRepository implements IProdutoRepository {
         Produto produto = buscarPorId(id);
         if (produto != null) {
             produto.setQtdEstoque(novaQuantidade);
-            ultimaMensagem = "✅ Estoque atualizado para " + novaQuantidade;
+            ultimaMensagem = "Estoque atualizado para " + novaQuantidade;
             return true;
         }
-        ultimaMensagem = "❌ Produto não encontrado com ID: " + id;
+        ultimaMensagem = "Produto não encontrado com ID: " + id;
         return false;
     }
 
@@ -84,10 +88,10 @@ public class ProdutoRepository implements IProdutoRepository {
         Produto produto = buscarPorId(id);
         if (produto != null && novoPreco != null && novoPreco.compareTo(BigDecimal.ZERO) > 0) {
             produto.setPreco(novoPreco);
-            ultimaMensagem = "✅ Preço atualizado para R$ " + novoPreco;
+            ultimaMensagem = "Preço atualizado para R$ " + novoPreco;
             return true;
         }
-        ultimaMensagem = "❌ Falha ao atualizar preço";
+        ultimaMensagem = "Falha ao atualizar preço";
         return false;
     }
 
@@ -99,6 +103,28 @@ public class ProdutoRepository implements IProdutoRepository {
         } else {
             ativos.forEach(System.out::println);
         }
+    }
+
+    public List<Produto> estoqueBaixo(int valorLimite) {
+        List<Produto> produtos = getAll();
+        List<Produto> estoqueBaixo = new ArrayList<>();
+
+        for (Produto p : produtos) {
+            if (p.getQtdEstoque() <= valorLimite) {
+                estoqueBaixo.add(p);
+            }
+        }
+
+        if (estoqueBaixo.isEmpty()) {
+            ultimaMensagem = "Nenhum produto com estoque ≤ " + valorLimite;
+        } else {
+            ultimaMensagem = estoqueBaixo.size() + " produto(s) encontrado(s)";
+        }
+
+        return estoqueBaixo;
+    }
+
+    private void ultimaMensagem(String s) {
     }
 
     @Override

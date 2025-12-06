@@ -13,5 +13,5 @@ public interface IClienteRepository<T> {
 
     boolean excluir(int id);
 
-    String getUltimaMensagem(); // Adicione este método
+    String getUltimaMensagem();
 }

@@ -2,16 +2,20 @@ package Services;
 
 import Models.Cliente;
 import Repositories.IClienteRepository;
+import Repositories.IVendasRepository;  // ⬅️ NOVO IMPORT
 
 import java.util.List;
 
 public class ClienteService<T extends Cliente> {
 
     private IClienteRepository<T> repository;
+    private IVendasRepository vendasRepository;  // ⬅️ NOVA DEPENDÊNCIA
     private String ultimaMensagem;
 
-    public ClienteService(IClienteRepository<T> repository) {
+    // ⬅️ CONSTRUTOR MODIFICADO
+    public ClienteService(IClienteRepository<T> repository, IVendasRepository vendasRepository) {
         this.repository = repository;
+        this.vendasRepository = vendasRepository;  // ⬅️ NOVO
     }
 
     public boolean cadastrarCliente(T cliente) {
@@ -33,6 +37,22 @@ public class ClienteService<T extends Cliente> {
     }
 
     public boolean excluirCliente(int id) {
+        //Verificar se cliente existe
+        T cliente = repository.buscarPorId(id);
+
+        if (cliente == null) {
+            ultimaMensagem = "❌ Cliente com ID " + id + " não encontrado!";
+            return false;
+        }
+
+        //Verificar se cliente tem vendas
+        if (vendasRepository.clienteTemVendas(id)) {
+            ultimaMensagem = "❌ Não é possível excluir cliente \"" + cliente.getNome() +
+                    "\" - possui vendas registradas!";
+            return false;
+        }
+
+        // ⬅️ TERCEIRO: Se não tem vendas, excluir
         boolean sucesso = repository.excluir(id);
 
         if (sucesso) {
