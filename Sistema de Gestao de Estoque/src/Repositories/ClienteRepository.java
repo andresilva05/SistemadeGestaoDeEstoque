@@ -9,12 +9,11 @@ public class ClienteRepository<T extends Cliente> implements IClienteRepository<
 
     private List<T> clientes = new ArrayList<>();
     private String ultimaMensagem;
-    private int proximoId = 1;
+    private static int proximoIdGlobal = 1;
 
     @Override
     public boolean adicionar(T cliente) {
-        cliente.setId(proximoId);
-        proximoId++;
+        cliente.setId(proximoIdGlobal++);
 
         // Verificar duplicidade
         if (buscarPorDocumento(cliente.getDocumento()) != null) {

@@ -2,20 +2,20 @@ package Services;
 
 import Models.Cliente;
 import Repositories.IClienteRepository;
-import Repositories.IVendasRepository;  // ⬅️ NOVO IMPORT
+import Repositories.IVendasRepository;
 
 import java.util.List;
 
 public class ClienteService<T extends Cliente> {
 
     private IClienteRepository<T> repository;
-    private IVendasRepository vendasRepository;  // ⬅️ NOVA DEPENDÊNCIA
+    private IVendasRepository vendasRepository;
     private String ultimaMensagem;
 
     // ⬅️ CONSTRUTOR MODIFICADO
     public ClienteService(IClienteRepository<T> repository, IVendasRepository vendasRepository) {
         this.repository = repository;
-        this.vendasRepository = vendasRepository;  // ⬅️ NOVO
+        this.vendasRepository = vendasRepository;
     }
 
     public boolean cadastrarCliente(T cliente) {
